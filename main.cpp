@@ -65,7 +65,7 @@ int main() {
   for (int i = 0; i < X_test.size(); i++) {
     vector<double> coords = X_test[i];
     string prediced = gnb.predict(coords);
-    if (prediced.compare(Y_test[i]) == 0) {
+    if (prediced == Y_test[i]) {
       score += 1;
     }
   }

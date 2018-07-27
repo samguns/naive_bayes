@@ -33,6 +33,9 @@ class GNB {
 
   string predict(vector<double>);
 
+ private:
+  vector<double> mMeans;
+  vector<double> mMu;
 };
 
 #endif //NAIVE_BAYES_CLASSIFIER_H
