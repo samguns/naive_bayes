@@ -42,6 +42,7 @@ class GNB {
       const vector<string>& labels);
   void CalculateDistribution(const vector<vector<double>>& features,
       int label);
+  double GaussianProbability(double obs, double mean, double mu);
 };
 
 #endif //NAIVE_BAYES_CLASSIFIER_H

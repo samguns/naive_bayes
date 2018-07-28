@@ -20,13 +20,18 @@
 #define S_RATE_IDX          2
 #define D_RATE_IDX          3
 
-#define D_FEATURE_IDX           0
+#define S_FEATURE_IDX           0
+#define D_FEATURE_IDX           1
 #define RELATIVE_D_FEATURE_IDX  1
 #define S_RATE_FEATURE_IDX      2
 #define D_RATE_FEATURE_IDX      3
 #define NOF_FEATURES            4
 
 #define LANE_WIDTH          4
+
+#define _USE_MATH_DEFINES
+
+const double PI = 3.141592653589793;
 
 /**
  * Initializes GNB
@@ -77,8 +82,27 @@ string GNB::predict(vector<double> sample)
       """
       # TODO - complete this
   */
+  double best = 0;
+  int k = 0;
 
-  return this->possible_labels[1];
+  for (int label = 0; label < NOF_LABELS; label++) {
+    double product = 1;
+    for (int feature = 0; feature < NOF_FEATURES; feature++) {
+      double prob = GaussianProbability(sample[feature],
+                                        mMeans[label][feature],
+                                        mMu[label][feature]);
+      product *= prob;
+    }
+
+    product *= mPriorProb[label];
+
+    if (product > best) {
+      best = product;
+      k = label;
+    }
+  }
+
+  return this->possible_labels[k];
 
 }
 
@@ -96,7 +120,8 @@ void GNB::CalculateGaussianDistribution(const vector<vector<double> > &data,
     double relative_d = (int)data[i][D_IDX] % LANE_WIDTH;
     if (labels[i] == "left") {
       featuresOfLeft[D_FEATURE_IDX].push_back(data[i][D_IDX]);
-      featuresOfLeft[RELATIVE_D_FEATURE_IDX].push_back(relative_d);
+      featuresOfLeft[S_FEATURE_IDX].push_back(data[i][S_IDX]);
+      //featuresOfLeft[RELATIVE_D_FEATURE_IDX].push_back(relative_d);
       featuresOfLeft[S_RATE_FEATURE_IDX].push_back(data[i][S_RATE_IDX]);
       featuresOfLeft[D_RATE_FEATURE_IDX].push_back(data[i][D_RATE_IDX]);
 
@@ -105,7 +130,8 @@ void GNB::CalculateGaussianDistribution(const vector<vector<double> > &data,
 
     if (labels[i] == "keep") {
       featuresOfKeep[D_FEATURE_IDX].push_back(data[i][D_IDX]);
-      featuresOfKeep[RELATIVE_D_FEATURE_IDX].push_back(relative_d);
+      featuresOfKeep[S_FEATURE_IDX].push_back(data[i][S_IDX]);
+      //featuresOfKeep[RELATIVE_D_FEATURE_IDX].push_back(relative_d);
       featuresOfKeep[S_RATE_FEATURE_IDX].push_back(data[i][S_RATE_IDX]);
       featuresOfKeep[D_RATE_FEATURE_IDX].push_back(data[i][D_RATE_IDX]);
 
@@ -114,7 +140,8 @@ void GNB::CalculateGaussianDistribution(const vector<vector<double> > &data,
 
     if (labels[i] == "right") {
       featuresOfRight[D_FEATURE_IDX].push_back(data[i][D_IDX]);
-      featuresOfRight[RELATIVE_D_FEATURE_IDX].push_back(relative_d);
+      featuresOfRight[S_FEATURE_IDX].push_back(data[i][S_IDX]);
+      //featuresOfRight[RELATIVE_D_FEATURE_IDX].push_back(relative_d);
       featuresOfRight[S_RATE_FEATURE_IDX].push_back(data[i][S_RATE_IDX]);
       featuresOfRight[D_RATE_FEATURE_IDX].push_back(data[i][D_RATE_IDX]);
 
@@ -133,7 +160,7 @@ void GNB::CalculateGaussianDistribution(const vector<vector<double> > &data,
 }
 
 void GNB::CalculateDistribution(const vector<vector<double>>& features,
-    int label) {
+                                int label) {
   double mean;
   double mu;
 
@@ -153,4 +180,12 @@ void GNB::CalculateDistribution(const vector<vector<double>>& features,
 
     mMu[label].emplace_back(sqrt(mu/feature_size));
   }
+}
+
+double GNB::GaussianProbability(double obs, double mean, double mu) {
+  double num = pow((obs - mean), 2);
+  double denum = 2 * mu * mu;
+  double normalizer = sqrt(2 * M_PI * mu * mu);
+
+  return exp(-num / denum) / normalizer;
 }
