@@ -34,8 +34,14 @@ class GNB {
   string predict(vector<double>);
 
  private:
-  vector<double> mMeans;
-  vector<double> mMu;
+  vector<vector<double>> mMeans;
+  vector<vector<double>> mMu;
+  vector<double> mPriorProb;
+
+  void CalculateGaussianDistribution(const vector<vector<double> >& data,
+      const vector<string>& labels);
+  void CalculateDistribution(const vector<vector<double>>& features,
+      int label);
 };
 
 #endif //NAIVE_BAYES_CLASSIFIER_H
